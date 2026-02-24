@@ -15,6 +15,7 @@ type Config struct {
 	Env        string     `mapstructure:"env"`
 	Database   Database   `mapstructure:"database"`
 	GrpcServer GrpcServer `mapstructure:"grpc_server"`
+	Auth       Auth       `mapstructure:"auth"`
 }
 
 type Database struct {
@@ -32,7 +33,12 @@ type GrpcServer struct {
 	IdleTimeout time.Duration `mapstructure:"idle_timeout"`
 }
 
-func MustLoad(cname string) (Config, error) {
+type Auth struct {
+	SigningKey string        `mapstructure:"signing_key"`
+	TokenTtl   time.Duration `mapstructure:"token_ttl"`
+}
+
+func MustLoad() (Config, error) {
 	path := fetchCfgDirPath()
 	if path == "" {
 		return Config{}, errors.New("config path is empty")
@@ -41,9 +47,7 @@ func MustLoad(cname string) (Config, error) {
 		return Config{}, fmt.Errorf("config file not found on path %s: %w", path, err)
 	}
 	// Setting viper
-	viper.AddConfigPath(path)
-	viper.SetConfigName(cname)
-	viper.SetConfigType("yaml")
+	viper.SetConfigFile(path)
 	// Env variables
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("APP")
@@ -64,7 +68,7 @@ func MustLoad(cname string) (Config, error) {
 
 func fetchCfgDirPath() string {
 	var path string
-	// --cfg="./config"
+	// --cfg="./config/local.yaml"
 	flag.StringVar(&path, "cfg", "", "path to cfg dir")
 	flag.Parse()
 	if path == "" {

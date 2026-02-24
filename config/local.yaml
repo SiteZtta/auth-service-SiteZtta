@@ -10,3 +10,6 @@ grpc_server:
   port: 50051
   timeout: 5s
   idle_timeout: 60s
+auth:
+  signing_key: "fjigdogo234mnertt466764" # signing key for token
+  token_ttl: 12h # token time to live
