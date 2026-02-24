@@ -41,7 +41,7 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) Stop() {
-	const fn = "auth-service-SiteZtta.internal.transport.grpc.run"
-	s.log.With(slog.String("fn", fn)).Info("Stopping gRPC server", slog.Int("port", s.port))
+	const fn = "auth-service-SiteZtta.internal.transport.grpc.stop"
+	s.log.With(slog.String("fn", fn)).Info("Stopping gRPC server")
 	s.gRPCServer.GracefulStop()
 }

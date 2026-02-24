@@ -5,6 +5,9 @@ import (
 	"auth-service-SiteZtta/internal/app"
 	"auth-service-SiteZtta/pkg/logger"
 	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -15,5 +18,12 @@ func main() {
 	log := logger.SetupLogger(cfg.Env)
 	log.Info("downloaded congig", slog.String("cfgEnv", cfg.Env), slog.Any("cfg", cfg))
 	application := app.New(log, cfg, "")
-	application.GRPCServer.MustRun()
+	go application.GRPCServer.MustRun()
+	// Graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	signa := <-stop
+	log.Info("shutting down server...", slog.Any("signal", signa.String()))
+	application.GRPCServer.Stop()
+	log.Info("application stopped")
 }
