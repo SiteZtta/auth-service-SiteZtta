@@ -1,0 +1,12 @@
+env: "local" # local, dev, prod
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  name: "sitezttaDb"
+grpc_server:
+  host: "localhost"
+  port: 50051
+  timeout: 5s
+  idle_timeout: 60s
