@@ -12,18 +12,19 @@ import (
 )
 
 type Auth interface {
-	CreateUser(ctx context.Context, in dto.SignUpInput) (int64, error)
-	GenerateToken(ctx context.Context, in dto.SignInInput) (string, error)
-	ParseToken(ctx context.Context, token string) (dto.AuthInfo, error)
+	CreateUser(ctx context.Context, in dto.SignUpInput) (uid int64, err error)
+	GenerateToken(ctx context.Context, in dto.SignInInput) (token string, err error)
+	ValidateToken(ctx context.Context, token string) (authInfo dto.AuthInfo, err error)
 }
 
 type handler struct {
 	sitezttav1.UnimplementedAuthServiceServer
 	validator *validator.Validate
+	auth      Auth
 }
 
-func Register(gRPC *grpc.Server) {
-	sitezttav1.RegisterAuthServiceServer(gRPC, &handler{validator: validator.New()})
+func Register(gRPC *grpc.Server, auth Auth) {
+	sitezttav1.RegisterAuthServiceServer(gRPC, &handler{validator: validator.New(), auth: auth})
 }
 
 func (h *handler) CreateUser(ctx context.Context, req *sitezttav1.SignUpRequest) (*sitezttav1.UserIdResponse, error) {
@@ -37,9 +38,12 @@ func (h *handler) CreateUser(ctx context.Context, req *sitezttav1.SignUpRequest)
 	if err := h.validator.Struct(input); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	//panic("implement me")
-	return nil, nil
+	// Business logic
+	userId, err := h.auth.CreateUser(ctx, input)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &sitezttav1.UserIdResponse{UserId: userId}, nil
 }
 
 func (h *handler) GenerateToken(ctx context.Context, req *sitezttav1.SignInRequest) (*sitezttav1.TokenResponse, error) {
@@ -51,9 +55,12 @@ func (h *handler) GenerateToken(ctx context.Context, req *sitezttav1.SignInReque
 	if err := h.validator.Struct(input); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	//panic("implement me")
-	return &sitezttav1.TokenResponse{Token: req.GetLogin() + req.GetPassword()}, nil
+	// Business logic
+	token, err := h.auth.GenerateToken(ctx, input)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &sitezttav1.TokenResponse{Token: token}, nil
 }
 
 func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenRequest) (*sitezttav1.AuthInfo, error) {
@@ -64,7 +71,13 @@ func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenReques
 	if err := h.validator.Struct(input); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-
-	//panic("implement me")
-	return nil, nil
+	// Business logic
+	authInfo, err := h.auth.ValidateToken(ctx, input.Token)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &sitezttav1.AuthInfo{
+		UserId: authInfo.UserId,
+		Role:   sitezttav1.Role(authInfo.Role),
+	}, nil
 }

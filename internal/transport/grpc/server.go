@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"auth-service-SiteZtta/internal/service/auth"
 	"fmt"
 	"log/slog"
 	"net"
@@ -15,6 +16,7 @@ type Server struct {
 }
 
 func New(log *slog.Logger, port int) *Server {
+	authService := auth.New(log)
 	gRPCServer := grpc.NewServer()
 	Register(gRPCServer)
 	return &Server{log: log, gRPCServer: gRPCServer, port: port}

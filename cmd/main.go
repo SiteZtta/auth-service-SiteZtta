@@ -4,6 +4,7 @@ import (
 	"auth-service-SiteZtta/config"
 	"auth-service-SiteZtta/internal/app"
 	"auth-service-SiteZtta/pkg/logger"
+	"flag"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,7 +12,14 @@ import (
 )
 
 func main() {
-	cfg, err := config.MustLoad()
+	var cfgPath string
+	// --cfg="./config/local.yaml"
+	flag.StringVar(&cfgPath, "cfg", "", "path to cfg dir")
+	flag.Parse()
+	if cfgPath == "" {
+		panic("cfg path is empty")
+	}
+	cfg, err := config.MustLoad(cfgPath)
 	if err != nil {
 		panic(err)
 	}

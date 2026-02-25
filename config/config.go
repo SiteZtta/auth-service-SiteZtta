@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -12,13 +11,13 @@ import (
 )
 
 type Config struct {
-	Env        string     `mapstructure:"env"`
-	Database   Database   `mapstructure:"database"`
-	GrpcServer GrpcServer `mapstructure:"grpc_server"`
-	Auth       Auth       `mapstructure:"auth"`
+	Env        string         `mapstructure:"env"`
+	Database   DatabaseConf   `mapstructure:"database"`
+	GrpcServer GrpcServerConf `mapstructure:"grpc_server"`
+	Auth       AuthConf       `mapstructure:"auth"`
 }
 
-type Database struct {
+type DatabaseConf struct {
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
 	User     string `mapstructure:"user"`
@@ -26,28 +25,27 @@ type Database struct {
 	Name     string `mapstructure:"name"`
 }
 
-type GrpcServer struct {
+type GrpcServerConf struct {
 	Host        string        `mapstructure:"host"`
 	Port        int           `mapstructure:"port"`
 	Timeout     time.Duration `mapstructure:"timeout"`
 	IdleTimeout time.Duration `mapstructure:"idle_timeout"`
 }
 
-type Auth struct {
+type AuthConf struct {
 	SigningKey string        `mapstructure:"signing_key"`
 	TokenTtl   time.Duration `mapstructure:"token_ttl"`
 }
 
-func MustLoad() (Config, error) {
-	path := fetchCfgDirPath()
-	if path == "" {
+func MustLoad(cfgPath string) (Config, error) {
+	if cfgPath == "" {
 		return Config{}, errors.New("config path is empty")
 	}
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return Config{}, fmt.Errorf("config file not found on path %s: %w", path, err)
+	if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
+		return Config{}, fmt.Errorf("config file not found on path %s: %w", cfgPath, err)
 	}
 	// Setting viper
-	viper.SetConfigFile(path)
+	viper.SetConfigFile(cfgPath)
 	// Env variables
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix("APP")
@@ -64,17 +62,6 @@ func MustLoad() (Config, error) {
 		return Config{}, fmt.Errorf("fatal error unmarshaling config: %w", err)
 	}
 	return cfg, nil
-}
-
-func fetchCfgDirPath() string {
-	var path string
-	// --cfg="./config/local.yaml"
-	flag.StringVar(&path, "cfg", "", "path to cfg dir")
-	flag.Parse()
-	if path == "" {
-		panic("cfg path is empty")
-	}
-	return path
 }
 
 func validateRequired() error {
@@ -94,8 +81,19 @@ func validateRequired() error {
 	return nil
 }
 
-func getConnString(cfg Config) string {
+func GetConnString(cfg Config) string {
 	return fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name)
+}
+
+func GetConnStringMigrate(cfg Config) string {
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Database.User,
+		cfg.Database.Password,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.Name,
+	)
 }

@@ -1,0 +1,11 @@
+# https://taskfile.dev/docs/guide
+
+version: '3'
+
+tasks:
+  migrate:
+    aliases:
+      - mi
+    desc: "Run database migrations"
+    cmds:
+      - go run ./cmd/migrator --cfg=./config/local.yaml --migrations-path=./migrations

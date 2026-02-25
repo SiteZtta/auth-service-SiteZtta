@@ -1,7 +1,5 @@
 package dto
 
-import sitezttav1 "github.com/SiteZtta/protos-SiteZtta/gen/go/auth"
-
 type SignUpInput struct {
 	UserName string `validate: "required"`      // UserName of the user to create
 	Email    string `validate:"required,email"` // Email of the user to create
@@ -19,6 +17,6 @@ type TokenInput struct {
 }
 
 type AuthInfo struct {
-	UserId int64           // User ID of the user
-	Role   sitezttav1.Role // Role of the user
+	UserId int64 // User ID of the user
+	Role   int32 // Role of the user
 }
