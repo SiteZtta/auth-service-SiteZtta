@@ -25,7 +25,8 @@ func main() {
 	}
 	log := logger.SetupLogger(cfg.Env)
 	log.Info("downloaded congig", slog.String("cfgEnv", cfg.Env), slog.Any("cfg", cfg))
-	application := app.New(log, cfg, "")
+	connStr := config.GetConnString(cfg)
+	application := app.New(log, cfg, connStr)
 	go application.GRPCServer.MustRun()
 	// Graceful shutdown
 	stop := make(chan os.Signal, 1)

@@ -25,6 +25,7 @@ type UserProvider interface {
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInvalidToken       = errors.New("invalid token")
 )
 
 // type TokenProvider interface {
@@ -54,7 +55,7 @@ func New(
 }
 
 // CreateUser creates a new user and returns its ID.
-func (a *Auth) CreateUser(ctx context.Context, signUpInput *dto.SignUpInput) (uid int64, err error) {
+func (a *Auth) CreateUser(ctx context.Context, signUpInput dto.SignUpInput) (uid int64, err error) {
 	const fn = "auth-service-SiteZtta.internal.service.auth.createUser"
 	log := a.log.With(slog.String("fn", fn))
 	log.Info("creating new user")
@@ -112,6 +113,9 @@ func (a *Auth) ValidateToken(ctx context.Context, token string) (authInfo dto.Au
 	log.Info("validating token")
 	claims, err := jwt.ParseToken(token, a.authConf)
 	if err != nil {
+		if errors.Is(err, jwt.ErrParseClaims) || errors.Is(err, jwt.ErrParseToken) {
+			return dto.AuthInfo{}, fmt.Errorf("%s: %w", fn, ErrInvalidToken)
+		}
 		return dto.AuthInfo{}, fmt.Errorf("%s: %w", fn, err)
 	}
 	authInfo = dto.AuthInfo{

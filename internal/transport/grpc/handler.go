@@ -1,8 +1,11 @@
 package grpc
 
 import (
+	"auth-service-SiteZtta/internal/service/auth"
+	"auth-service-SiteZtta/internal/storage"
 	"auth-service-SiteZtta/internal/transport/grpc/v1/dto"
 	"context"
+	"errors"
 
 	sitezttav1 "github.com/SiteZtta/protos-SiteZtta/gen/go/auth"
 	"github.com/go-playground/validator/v10"
@@ -41,6 +44,9 @@ func (h *handler) CreateUser(ctx context.Context, req *sitezttav1.SignUpRequest)
 	// Business logic
 	userId, err := h.auth.CreateUser(ctx, input)
 	if err != nil {
+		if errors.Is(err, storage.ErrUserExists) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &sitezttav1.UserIdResponse{UserId: userId}, nil
@@ -58,6 +64,9 @@ func (h *handler) GenerateToken(ctx context.Context, req *sitezttav1.SignInReque
 	// Business logic
 	token, err := h.auth.GenerateToken(ctx, input)
 	if err != nil {
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &sitezttav1.TokenResponse{Token: token}, nil
@@ -74,6 +83,9 @@ func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenReques
 	// Business logic
 	authInfo, err := h.auth.ValidateToken(ctx, input.Token)
 	if err != nil {
+		if errors.Is(err, auth.ErrInvalidToken) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &sitezttav1.AuthInfo{
