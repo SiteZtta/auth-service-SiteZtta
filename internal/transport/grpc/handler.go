@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	sitezttav1 "github.com/SiteZtta/protos-SiteZtta/gen/go/auth"
+	sitezttav2 "github.com/SiteZtta/protos-SiteZtta/gen/go/auth"
 	"github.com/go-playground/validator/v10"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -21,16 +21,16 @@ type Auth interface {
 }
 
 type handler struct {
-	sitezttav1.UnimplementedAuthServiceServer
+	sitezttav2.UnimplementedAuthServiceServer
 	validator *validator.Validate
 	auth      Auth
 }
 
 func Register(gRPC *grpc.Server, auth Auth) {
-	sitezttav1.RegisterAuthServiceServer(gRPC, &handler{validator: validator.New(), auth: auth})
+	sitezttav2.RegisterAuthServiceServer(gRPC, &handler{validator: validator.New(), auth: auth})
 }
 
-func (h *handler) CreateUser(ctx context.Context, req *sitezttav1.SignUpRequest) (*sitezttav1.UserIdResponse, error) {
+func (h *handler) CreateUser(ctx context.Context, req *sitezttav2.SignUpRequest) (*sitezttav2.UserIdResponse, error) {
 	// validation
 	input := dto.SignUpInput{
 		UserName: req.GetUserName(),
@@ -49,10 +49,10 @@ func (h *handler) CreateUser(ctx context.Context, req *sitezttav1.SignUpRequest)
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &sitezttav1.UserIdResponse{UserId: userId}, nil
+	return &sitezttav2.UserIdResponse{UserId: userId}, nil
 }
 
-func (h *handler) GenerateToken(ctx context.Context, req *sitezttav1.SignInRequest) (*sitezttav1.TokenResponse, error) {
+func (h *handler) GenerateToken(ctx context.Context, req *sitezttav2.SignInRequest) (*sitezttav2.TokenResponse, error) {
 	// validation
 	input := dto.SignInInput{
 		Login:    req.GetLogin(),
@@ -69,10 +69,10 @@ func (h *handler) GenerateToken(ctx context.Context, req *sitezttav1.SignInReque
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &sitezttav1.TokenResponse{Token: token}, nil
+	return &sitezttav2.TokenResponse{Token: token}, nil
 }
 
-func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenRequest) (*sitezttav1.AuthInfo, error) {
+func (h *handler) ValidateToken(ctx context.Context, req *sitezttav2.TokenRequest) (*sitezttav2.AuthInfo, error) {
 	// validation
 	input := dto.TokenInput{
 		Token: req.GetToken(),
@@ -88,9 +88,10 @@ func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenReques
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	prtotobufAuthInfo := &sitezttav1.AuthInfo{
-		UserId: authInfo.UserId,
-		Role:   sitezttav1.Role(authInfo.Role),
+	prtotobufAuthInfo := &sitezttav2.AuthInfo{
+		UserId:   authInfo.UserId,
+		Role:     sitezttav2.Role(authInfo.Role),
+		UserName: authInfo.UserName,
 	}
 	return prtotobufAuthInfo, nil
 }

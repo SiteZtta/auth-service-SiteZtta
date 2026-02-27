@@ -119,8 +119,9 @@ func (a *Auth) ValidateToken(ctx context.Context, token string) (authInfo dto.Au
 		return dto.AuthInfo{}, fmt.Errorf("%s: %w", fn, err)
 	}
 	authInfo = dto.AuthInfo{
-		UserId: claims.UserId,
-		Role:   claims.Role,
+		UserId:   claims.UserId,
+		Role:     claims.Role,
+		UserName: claims.UserName,
 	}
 	return authInfo, nil
 }

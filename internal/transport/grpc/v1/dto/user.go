@@ -17,6 +17,7 @@ type TokenInput struct {
 }
 
 type AuthInfo struct {
-	UserId int64 // User ID of the user
-	Role   int32 // Role of the user
+	UserId   int64  // User ID of the user
+	Role     int32  // Role of the user
+	UserName string // UserName of the user
 }

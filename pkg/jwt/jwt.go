@@ -17,8 +17,9 @@ var (
 
 type TokenClaims struct {
 	jwt.RegisteredClaims
-	UserId int64 `json:"user_id"`
-	Role   int32 `json:"role"`
+	UserId   int64  `json:"user_id"`
+	Role     int32  `json:"role"`
+	UserName string `json:"user_name"`
 }
 
 func NewToken(user entities.User, authConf config.AuthConf) (string, error) {
@@ -29,8 +30,9 @@ func NewToken(user entities.User, authConf config.AuthConf) (string, error) {
 			ExpiresAt: &expiresAt,
 			IssuedAt:  &issuedAt,
 		},
-		UserId: user.ID,
-		Role:   user.Role,
+		UserId:   user.ID,
+		Role:     user.Role,
+		UserName: user.Username,
 	})
 	tokenSigned, err := token.SignedString([]byte(authConf.SigningKey))
 	if err != nil {
