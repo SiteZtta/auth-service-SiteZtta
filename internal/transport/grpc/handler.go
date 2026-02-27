@@ -88,8 +88,9 @@ func (h *handler) ValidateToken(ctx context.Context, req *sitezttav1.TokenReques
 		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	return &sitezttav1.AuthInfo{
+	prtotobufAuthInfo := &sitezttav1.AuthInfo{
 		UserId: authInfo.UserId,
 		Role:   sitezttav1.Role(authInfo.Role),
-	}, nil
+	}
+	return prtotobufAuthInfo, nil
 }
